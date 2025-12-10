@@ -79,6 +79,7 @@ It introduces a decentralized and verifiable approach to IoT authentication and 
 ### 1️⃣ Clone the Repository
 
 git clone https://github.com/mostafa-hatem/blockchain-proj.git
+
 cd proj.git
 
 ### 2️⃣ Install Dependencies (Hardhat Users)
