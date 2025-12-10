@@ -80,13 +80,14 @@ It introduces a decentralized and verifiable approach to IoT authentication and 
 
 git clone https://github.com/mostafa-hatem/blockchain-proj.git
 cd proj.git
-2️⃣ Install Dependencies (Hardhat Users)
+
+### 2️⃣ Install Dependencies (Hardhat Users)
 npm install
 
-3️⃣ Compile the Smart Contract
+### 3️⃣ Compile the Smart Contract
 npx hardhat compile
 
-4️⃣ Deploy (Example Local Deployment)
+### 4️⃣ Deploy (Example Local Deployment)
 npx hardhat run scripts/deploy.js --network localhost
 
 🧪 Testing
