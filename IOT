@@ -1,0 +1,99 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
+
+contract IoTAuthStorage {
+    address public owner;
+
+    struct Device {
+        address deviceAddr;
+        string meta;      
+        uint256 registeredAt;
+        bool active;
+    }
+
+    mapping(address => Device) private devices;
+
+    mapping(address => bool) public auditors;
+
+    event DeviceRegistered(address indexed deviceAddr, string meta, uint256 timestamp);
+    event DeviceRevoked(address indexed deviceAddr, uint256 timestamp);
+    event DataRecorded(address indexed deviceAddr, bytes32 dataHash, uint256 timestamp, uint256 nonce);
+    event AuditorAdded(address indexed auditor);
+    event AuditorRemoved(address indexed auditor);
+
+    mapping(address => uint256) public nonces;
+
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only owner");
+        _;
+    }
+
+    modifier onlyRegisteredDevice() {
+        require(devices[msg.sender].active, "Device not registered or revoked");
+        _;
+    }
+
+    modifier onlyAuditorOrOwner() {
+        require(msg.sender == owner || auditors[msg.sender], "Not auditor or owner");
+        _;
+    }
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    function registerDevice(address deviceAddr, string calldata meta) external onlyOwner {
+        require(deviceAddr != address(0), "Invalid address");
+        Device storage d = devices[deviceAddr];
+        d.deviceAddr = deviceAddr;
+        d.meta = meta;
+        d.registeredAt = block.timestamp;
+        d.active = true;
+        nonces[deviceAddr] = 0;
+        emit DeviceRegistered(deviceAddr, meta, block.timestamp);
+    }
+
+    function revokeDevice(address deviceAddr) external onlyOwner {
+        require(devices[deviceAddr].active, "Device not active");
+        devices[deviceAddr].active = false;
+        emit DeviceRevoked(deviceAddr, block.timestamp);
+    }
+
+    function addAuditor(address auditor) external onlyOwner {
+        auditors[auditor] = true;
+        emit AuditorAdded(auditor);
+    }
+
+    function removeAuditor(address auditor) external onlyOwner {
+        auditors[auditor] = false;
+        emit AuditorRemoved(auditor);
+    }
+
+    function recordData(bytes32 dataHash, uint256 nonce) external onlyRegisteredDevice {
+
+        require(nonce == nonces[msg.sender] + 1, "Invalid nonce (replay or out of order)");
+        nonces[msg.sender] = nonce;
+
+        emit DataRecorded(msg.sender, dataHash, block.timestamp, nonce);
+    }
+
+    function getDevice(address deviceAddr) external view onlyAuditorOrOwner returns (
+        string memory meta, 
+        uint256 registeredAt, 
+        bool active, 
+        uint256 nonce
+    ) {
+        Device storage d = devices[deviceAddr];
+        return (d.meta, d.registeredAt, d.active, nonces[deviceAddr]);
+    }
+
+    function isRegistered(address deviceAddr) external view returns (bool) {
+        return devices[deviceAddr].active;
+    }
+
+    function transferOwnership(address newOwner) external onlyOwner {
+        require(newOwner != address(0), "Zero address");
+        owner = newOwner;
+    }
+}
