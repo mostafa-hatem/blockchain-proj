@@ -14,6 +14,8 @@ contract IoTAuthStorage {
     mapping(address => Device) private devices;
 
     mapping(address => bool) public auditors;
+    
+    mapping(address => uint256) public nonces;
 
     event DeviceRegistered(address indexed deviceAddr, string meta, uint256 timestamp);
     event DeviceRevoked(address indexed deviceAddr, uint256 timestamp);
@@ -21,7 +23,6 @@ contract IoTAuthStorage {
     event AuditorAdded(address indexed auditor);
     event AuditorRemoved(address indexed auditor);
 
-    mapping(address => uint256) public nonces;
 
 
     modifier onlyOwner() {
@@ -84,6 +85,7 @@ contract IoTAuthStorage {
         bool active, 
         uint256 nonce
     ) {
+        require(devices[deviceAddr].registeredAt != 0, "Device not found");
         Device storage d = devices[deviceAddr];
         return (d.meta, d.registeredAt, d.active, nonces[deviceAddr]);
     }
