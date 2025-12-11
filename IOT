@@ -85,7 +85,7 @@ contract IoTAuthStorage {
         bool active, 
         uint256 nonce
     ) {
-        require(devices[deviceAddr].registeredAt != 0, "Device not found");
+        require(devices[deviceAddr].active != false, "Device not found");
         Device storage d = devices[deviceAddr];
         return (d.meta, d.registeredAt, d.active, nonces[deviceAddr]);
     }
